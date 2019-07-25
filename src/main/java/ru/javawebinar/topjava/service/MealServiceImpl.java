@@ -9,12 +9,15 @@ import ru.javawebinar.topjava.repository.MealRepository;
 import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.MealsUtil;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 @Service
-public class MealServiceImpl implements MealService{
+public class MealServiceImpl implements MealService {
     private final Logger log = LoggerFactory.getLogger(MealServiceImpl.class);
     private MealRepository repository;
 
@@ -30,6 +33,16 @@ public class MealServiceImpl implements MealService{
     }
 
     @Override
+    public List<MealTo> getAll(LocalDateTime startTime, LocalDateTime endTime, int userId) {
+        return MealsUtil.getFilteredWithExcess(
+            repository.getAll(userId),
+            MealsUtil.DEFAULT_CALORIES_PER_DAY,
+            startTime.toLocalTime(),
+            endTime.toLocalTime()
+        );
+    }
+
+    @Override
     public MealTo get(int mealId, int userId) {
         Meal meal = repository.get(mealId, userId);
         List<MealTo> meals = MealsUtil.getWithExcess(Collections.singletonList(meal), MealsUtil.DEFAULT_CALORIES_PER_DAY);
@@ -37,18 +50,17 @@ public class MealServiceImpl implements MealService{
     }
 
     @Override
-    public MealTo delete(int mealId, int userId) {
-        repository.delete(mealId, userId);
-        return null;
+    public boolean delete(int mealId, int userId) {
+        return repository.delete(mealId, userId);
     }
 
     @Override
-    public MealTo save(Meal meal, int userId) {
-        return null;
+    public int save(Meal meal, int userId) {
+        return repository.save(meal, userId).getId();
     }
 
     @Override
     public int update(Meal meal, int userId) {
-        return 0;
+        return repository.save(meal, userId).getId();
     }
 }

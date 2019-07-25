@@ -10,6 +10,9 @@ import ru.javawebinar.topjava.to.MealTo;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Controller
@@ -23,13 +26,14 @@ public class MealRestController {
     }
 
     public List<MealTo> getAll() {
-        List<MealTo> meals = service.getAll(SecurityUtil.authUserId());
-        return meals;
+        return service.getAll(SecurityUtil.authUserId());
     }
 
-    public List<MealTo> getAll(int startDate, int startTime, int endDate, int endTime) {
-        // TODO: разобраться какого типа должны быть параметры
-        return null;
+    public List<MealTo> getAll(LocalDate startDate, LocalTime startTime, LocalDate endDate, LocalTime endTime) {
+        int userId = SecurityUtil.authUserId();
+        LocalDateTime start = startDate.atTime(startTime);
+        LocalDateTime end = endDate.atTime(endTime);
+        return service.getAll(start, end, userId);
     }
 
     public MealTo get(int mealId) throws NotFoundException {
@@ -50,13 +54,13 @@ public class MealRestController {
         return 1;
     }
 
-    public MealTo save(Meal meal) throws NotFoundException {
+    public int save(Meal meal) throws NotFoundException {
         int userId = SecurityUtil.authUserId();
-        MealTo mealTo = service.save(meal, userId);
-        if (mealTo == null) {
+        int mealId = service.save(meal, userId);
+        if (mealId == 0) {
             throw new NotFoundException("Couldn't get save " + meal.toString() + " for user " + userId);
         }
-        return mealTo;
+        return mealId;
     }
 
     public int update(Meal meal) throws NotFoundException {
